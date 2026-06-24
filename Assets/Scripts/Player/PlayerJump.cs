@@ -13,11 +13,11 @@ namespace Platformer.Mechanics
 
         [Header("Coyote time")]
         [SerializeField] private float coyoteTime = 0.15f;
-        private float coyoteTimeState = 0f;
+        private float coyoteTimer = 0f;
 
         [Header("Jump buffer time")]
         [SerializeField] private float jumpBufferTime = 0.15f;
-        private float jumpBufferState = 0f;
+        private float jumpBufferTimer = 0f;
 
         private bool isJumpPressed;
 
@@ -43,33 +43,38 @@ namespace Platformer.Mechanics
 
         private void Update()
         {
-            isJumpPressed = JumpIsPressed();
+            isJumpPressed = IsJumpPressed();
 
-            if (jumpBufferState > -jumpBufferTime)
+            if (jumpBufferTimer > 0f)
             {
-                jumpBufferState -= Time.deltaTime;
+                jumpBufferTimer -= Time.deltaTime;
             }
 
             if (Player.Instance.IsGrounded)
             {
-                coyoteTimeState = coyoteTime;
+                coyoteTimer = coyoteTime;
             }
             else
             {
-                coyoteTimeState -= Time.deltaTime;
+                coyoteTimer -= Time.deltaTime;
             }
         }
 
         private void FixedUpdate()
         {
+            if (Player.Instance.IsGrounded && jumpBufferTimer > 0f)
+            {
+                Jump();
+            }
+
             if (Player.Instance.IsGrounded) return;
 
-            if (_rb.linearVelocity.y < 0)
+            if (_rb.linearVelocity.y < 0f)
             {
                 _rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
             }
 
-            if (!isJumpPressed && _rb.linearVelocity.y > 0)
+            if (!isJumpPressed && _rb.linearVelocity.y > 0f)
             {
                 _rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
             }
@@ -77,22 +82,22 @@ namespace Platformer.Mechanics
 
         private void OnJump(InputAction.CallbackContext ctx)
         {
-            jumpBufferState = jumpBufferTime;
+            jumpBufferTimer = jumpBufferTime;
 
-            if (coyoteTimeState > 0f || (Player.Instance.IsGrounded && jumpBufferState > 0f))
+            if (coyoteTimer > 0f)
             {
                 Jump();
-                coyoteTimeState = 0f;
-                jumpBufferState = 0f;
             }
         }
 
         private void Jump()
         {
             _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
+            coyoteTimer = 0f;
+            jumpBufferTimer = 0f;
         }
 
-        private bool JumpIsPressed()
+        private bool IsJumpPressed()
         {
             return InputManager.Instance.Actions.Player.Jump.IsInProgress();
         }
