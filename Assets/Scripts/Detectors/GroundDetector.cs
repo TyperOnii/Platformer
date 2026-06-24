@@ -15,7 +15,7 @@ public class GroundDetector : MonoBehaviour
         get
         {
             var point = new Vector2(collider.bounds.center.x, collider.bounds.min.y);
-            var size = new Vector2(collider.bounds.extents.x * 2, height);
+            var size = new Vector2(collider.bounds.extents.x, height);
             Collider2D hit = Physics2D.OverlapBox(point, size, angle, groundLayer);
 
             return hit != null;
@@ -31,7 +31,7 @@ public class GroundDetector : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         var point = new Vector2(collider.bounds.center.x, collider.bounds.min.y);
-        var size = new Vector2(collider.bounds.extents.x * 2, height);
+        var size = new Vector2(collider.bounds.extents.x, height);
 
         Gizmos.DrawCube(point, size);
     }
